@@ -1,166 +1,131 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { getCurrentWeather, getForecast } from "../services/weatherApi";
+import { Link } from "react-router-dom";
 import {
+  getFavorites,
   addFavorite,
-  removeFavorite,
-  getFavorites
+  removeFavorite
 } from "../firebase/favoritesService";
 
-function Home() {
+const API_KEY = "4d2631c6c6c4dffc5b233b2636f0ec33";
+
+export default function Home() {
+  const [dark, setDark] = useState(
+  localStorage.getItem("dark") === "true"
+);
+
+useEffect(() => {
+  localStorage.setItem("dark", dark);
+}, [dark]);
+
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
-  const [forecast, setForecast] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const navigate = useNavigate();
-
-  // încarcă favoritele la pornire
   useEffect(() => {
-    async function loadFavorites() {
-      const data = await getFavorites();
-      setFavorites(data);
-    }
-    loadFavorites();
+    refreshFavorites();
   }, []);
 
-  const handleSearch = async () => {
-    if (!city.trim()) return;
+  const refreshFavorites = async () => {
+    const data = await getFavorites();
+    setFavorites(data);
+  };
 
-    setLoading(true);
-    setError("");
-    setWeather(null);
-    setForecast([]);
+  const search = async () => {
+    if (!city) return;
 
-    try {
-      const current = await getCurrentWeather(city);
-      const forecastData = await getForecast(city);
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=ro&appid=${API_KEY}`
+    );
+    const data = await res.json();
+    setWeather(data);
+  };
 
-      setWeather(current);
-
-      // o prognoză pe zi (din 3h în 3h)
-      const daily = forecastData.list.filter(
-        (_, index) => index % 8 === 0
-      );
-      setForecast(daily);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const isFavorite = (id) => {
+    return favorites.some((f) => f.id === id);
   };
 
   const toggleFavorite = async () => {
     if (!weather) return;
 
-    const cityId = `${weather.name}_${weather.sys.country}`;
-    const exists = favorites.find((f) => f.id === cityId);
+    const id = `${weather.name}_${weather.sys.country}`;
 
-    if (exists) {
-      await removeFavorite(cityId);
+    if (isFavorite(id)) {
+      await removeFavorite(id);
     } else {
       await addFavorite({
-        id: cityId,
+        id,
         name: weather.name,
         country: weather.sys.country
       });
     }
 
-    const updated = await getFavorites();
-    setFavorites(updated);
+    await refreshFavorites();
   };
 
   return (
-    <div className="container">
-      {/* HEADER */}
-      <div className="header">
-        <h2>🌦️ Meteo Moldova</h2>
-      </div>
+    <div className={dark ? "container dark" : "container"}>
+      <h1>🌤 Weather Dashboard</h1>
+      <button onClick={() => setDark(!dark)}>
+  {dark ? "☀ Light Mode" : "🌙 Dark Mode"}
+</button>
 
-      {/* SEARCH */}
-      <div className="search">
-        <input
-          type="text"
-          placeholder="Introdu orașul (ex: Chisinau)"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-        />
-        <button onClick={handleSearch}>Caută</button>
-      </div>
 
-      {loading && <p>Se încarcă...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <input
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        placeholder="Introdu orașul"
+      />
+      <button onClick={search}>Caută</button>
 
-      {/* WEATHER CARD */}
       {weather && (
-        <div className="card">
-          <h3>
+        <div className="weather-box">
+          <h2>
             {weather.name} ({weather.sys.country})
-          </h3>
-          <p>🌡️ Temperatura: {weather.main.temp} °C</p>
-          <p>☁️ Vreme: {weather.weather[0].description}</p>
-          <p>💧 Umiditate: {weather.main.humidity}%</p>
-          <p>🌬️ Vânt: {weather.wind.speed} m/s</p>
+          </h2>
+          <p>🌡 {weather.main.temp} °C</p>
+          <p>☁ {weather.weather[0].description}</p>
 
-          <button
-            className={`favorite-btn ${
-              favorites.find(
-                (f) =>
-                  f.id === `${weather.name}_${weather.sys.country}`
-              )
-                ? "remove"
-                : "add"
-            }`}
-            onClick={toggleFavorite}
-          >
-            {favorites.find(
-              (f) =>
-                f.id === `${weather.name}_${weather.sys.country}`
-            )
-              ? "❌ Elimină din favorite"
-              : "⭐ Adaugă la favorite"}
+          <button className="favorite-btn" onClick={toggleFavorite}>
+            {isFavorite(`${weather.name}_${weather.sys.country}`)
+              ? "❌ Remove favorite"
+              : "⭐ Add favorite"}
           </button>
+
+          <br />
+          <Link className="link" to={`/city/${weather.name}`}>
+            Vezi detalii →
+          </Link>
         </div>
       )}
 
-      {/* FORECAST */}
-      {forecast.length > 0 && (
-        <div className="card">
-          <h3>Prognoză următoarele zile</h3>
-          <div className="forecast">
-            {forecast.map((item) => (
-              <div className="forecast-item" key={item.dt}>
-                <p>
-                  {new Date(item.dt * 1000).toLocaleDateString()}
-                </p>
-                <p>🌡️ {item.main.temp} °C</p>
-                <p>{item.weather[0].description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="favorites">
+        <h3>⭐ Favorite</h3>
+        <ul>
+          {favorites.map((f) => (
+            <li key={f.id}>
+  <Link
+    className="link"
+    to={`/city/${f.name}`}
+    style={{ flex: 1 }}
+  >
+    {f.name} ({f.country})
+  </Link>
 
-      {/* FAVORITES */}
-      {favorites.length > 0 && (
-        <div className="card favorites">
-          <h3>⭐ Orașe favorite</h3>
-          <ul>
-            {favorites.map((city) => (
-              <li
-                key={city.id}
-                onClick={() => navigate(`/city/${city.id}`)}
-              >
-                {city.name} ({city.country})
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+  <button
+    className="remove-btn"
+    onClick={async (e) => {
+      e.preventDefault();
+      await removeFavorite(f.id);
+      refreshFavorites();
+    }}
+  >
+    ❌
+  </button>
+</li>
+
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
-
-export default Home;

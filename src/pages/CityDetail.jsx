@@ -1,67 +1,53 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getCurrentWeather, getForecast } from "../services/weatherApi";
 
-function CityDetail() {
-  const { id } = useParams();
-  const cityName = id.split("_")[0];
+const API_KEY = "4d2631c6c6c4dffc5b233b2636f0ec33";
 
-  const [weather, setWeather] = useState(null);
+export default function CityDetail() {
+  const { city } = useParams();
+  const [data, setData] = useState(null);
   const [forecast, setForecast] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const current = await getCurrentWeather(cityName);
-        const forecastData = await getForecast(cityName);
+    // vreme curentă
+    fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=ro&appid=${API_KEY}`
+    )
+      .then((r) => r.json())
+      .then(setData);
 
-        setWeather(current);
-        const daily = forecastData.list.filter(
-          (_, index) => index % 8 === 0
-        );
+    // prognoză 5 zile
+    fetch(
+      `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&lang=ro&appid=${API_KEY}`
+    )
+      .then((r) => r.json())
+      .then((res) => {
+        const daily = res.list.filter((_, i) => i % 8 === 0);
         setForecast(daily);
-      } finally {
-        setLoading(false);
-      }
-    }
+      });
+  }, [city]);
 
-    loadData();
-  }, [cityName]);
-
-  if (loading) return <p>Se încarcă...</p>;
+  if (!data) return <p className="container">Se încarcă...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Detalii meteo – {cityName}</h2>
+    <div className="container">
+      <Link className="link" to="/">⬅ Înapoi</Link>
 
-      {weather && (
-        <>
-          <p>🌡️ Temperatura: {weather.main.temp} °C</p>
-          <p>☁️ Vreme: {weather.weather[0].description}</p>
-          <p>💧 Umiditate: {weather.main.humidity}%</p>
-          <p>🌬️ Vânt: {weather.wind.speed} m/s</p>
-        </>
-      )}
+      <h1>{data.name}</h1>
+      <p>🌡 {data.main.temp} °C</p>
+      <p>☁ {data.weather[0].description}</p>
 
-      {forecast.length > 0 && (
-        <>
-          <h3>Prognoză</h3>
-          {forecast.map((item) => (
-            <div key={item.dt}>
-              <p>
-                📅{" "}
-                {new Date(item.dt * 1000).toLocaleDateString()}
-              </p>
-              <p>🌡️ {item.main.temp} °C</p>
-              <p>☁️ {item.weather[0].description}</p>
-              <hr />
-            </div>
-          ))}
-        </>
-      )}
+      <h3>📅 Prognoză 5 zile</h3>
+
+      {forecast.map((day) => (
+        <div key={day.dt} className="weather-box">
+          <strong>
+            {new Date(day.dt * 1000).toLocaleDateString("ro-RO")}
+          </strong>
+          <p>🌡 {day.main.temp} °C</p>
+          <p>☁ {day.weather[0].description}</p>
+        </div>
+      ))}
     </div>
   );
 }
-
-export default CityDetail;

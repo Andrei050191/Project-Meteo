@@ -1,16 +1,12 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import CityDetail from "./pages/CityDetail";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home.jsx";
+import CityDetail from "./pages/CityDetail.jsx";
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/city/:id" element={<CityDetail />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/city/:city" element={<CityDetail />} />
+    </Routes>
   );
 }
-
-export default App;

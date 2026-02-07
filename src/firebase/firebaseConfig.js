@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, signInAnonymously } from "firebase/auth";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB6u3SC1eeEoxFZ960MOCNVjVWS1HVfekY",
@@ -11,12 +11,15 @@ const firebaseConfig = {
   appId: "1:467126951387:web:dcbb886bba54d0ca16dbfe"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Firestore database
 export const db = getFirestore(app);
-
-// Authentication (anonim)
 export const auth = getAuth(app);
-signInAnonymously(auth);
+
+// așteptăm LOGIN-ul anonim (FOARTE IMPORTANT)
+export const authReady = new Promise((resolve) => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) resolve(user);
+    else signInAnonymously(auth);
+  });
+});

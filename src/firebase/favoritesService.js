@@ -1,60 +1,23 @@
-import { db, auth } from "./firebaseConfig";
-import {
-  collection,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDocs,
-  serverTimestamp
-} from "firebase/firestore";
+import { db, auth, authReady } from "./firebaseConfig";
+import { collection, doc, setDoc, deleteDoc, getDocs } from "firebase/firestore";
 
-// helper: așteaptă autentificarea
-function getUserId() {
-  return new Promise((resolve) => {
-    if (auth.currentUser) {
-      resolve(auth.currentUser.uid);
-    } else {
-      auth.onAuthStateChanged((user) => {
-        if (user) resolve(user.uid);
-      });
-    }
-  });
+const favCol = (uid) => collection(db, "favorites", uid, "cities");
+
+export async function getFavorites() {
+  await authReady;
+  const uid = auth.currentUser.uid;
+  const snap = await getDocs(favCol(uid));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export async function addFavorite(city) {
-  const userId = await getUserId();
-
-  const ref = doc(
-    collection(db, "favorites", userId, "cities"),
-    city.id
-  );
-
-  await setDoc(ref, {
-    name: city.name,
-    country: city.country,
-    addedAt: serverTimestamp()
-  });
+  await authReady;
+  const uid = auth.currentUser.uid;
+  await setDoc(doc(favCol(uid), city.id), city);
 }
 
-export async function removeFavorite(cityId) {
-  const userId = await getUserId();
-
-  const ref = doc(
-    collection(db, "favorites", userId, "cities"),
-    cityId
-  );
-
-  await deleteDoc(ref);
-}
-
-export async function getFavorites() {
-  const userId = await getUserId();
-
-  const ref = collection(db, "favorites", userId, "cities");
-  const snapshot = await getDocs(ref);
-
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+export async function removeFavorite(id) {
+  await authReady;
+  const uid = auth.currentUser.uid;
+  await deleteDoc(doc(favCol(uid), id));
 }
