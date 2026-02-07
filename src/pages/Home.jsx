@@ -94,6 +94,12 @@ useEffect(() => {
 />
 
       <button onClick={search}>Caută</button>
+      {error && (
+  <p style={{ color: "#dc2626", marginTop: 10 }}>
+    {error}
+  </p>
+)}
+
 
       {weather && (
         <div className="weather-box">
