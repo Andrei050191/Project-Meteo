@@ -60,7 +60,7 @@ export default function CityDetail() {
       <p>🔽 Presiunea atmosferică: {data.main.pressure} hPa</p>
       <p>💧 Umeditatea: {data.main.humidity}%</p>
 
-      <h3>📅 Prognoză 5 zile (zi / noapte)</h3>
+      <h3>📅 Prognoză pe 5 zile</h3>
 
       {forecast.map(([day, values]) => (
         <div key={day} className="weather-box">
