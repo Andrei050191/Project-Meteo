@@ -16,7 +16,7 @@ export default function CityDetail() {
       .then((r) => r.json())
       .then(setData);
 
-    // prognoză 5 zile – DETALII COMPLETE
+    // prognoză 5 zile – DOAR ZI / NOAPTE
     fetch(
       `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&lang=ro&appid=${API_KEY}`
     )
@@ -25,9 +25,20 @@ export default function CityDetail() {
         const days = {};
 
         res.list.forEach((item) => {
-          const day = item.dt_txt.split(" ")[0];
-          if (!days[day]) days[day] = [];
-          days[day].push(item);
+          const [date, time] = item.dt_txt.split(" ");
+          if (!days[date]) {
+            days[date] = { day: null, night: null };
+          }
+
+          // zi ≈ ora 12:00
+          if (time === "12:00:00") {
+            days[date].day = item;
+          }
+
+          // noapte ≈ ora 00:00
+          if (time === "00:00:00") {
+            days[date].night = item;
+          }
         });
 
         setForecast(Object.entries(days).slice(0, 5));
@@ -50,21 +61,31 @@ export default function CityDetail() {
       <p>🔽 Presiune atmosferică: {data.main.pressure} hPa</p>
       <p>💧 Umiditate: {data.main.humidity}%</p>
 
-      <h3>📅 Prognoză 5 zile (detalii complete)</h3>
+      <h3>📅 Prognoză 5 zile (zi / noapte)</h3>
 
-      {forecast.map(([day, items]) => (
+      {forecast.map(([day, values]) => (
         <div key={day} className="weather-box">
           <strong>
             {new Date(day).toLocaleDateString("ro-RO")}
           </strong>
 
-          {items.map((i) => (
-            <p key={i.dt}>
-              🕒 {i.dt_txt.split(" ")[1]} | 🌡 {i.main.temp}°C | 💨{" "}
-              {i.wind.speed} m/s | 🧭 {i.wind.deg}° | 🔽{" "}
-              {i.main.pressure} hPa | ☁ {i.weather[0].description}
+          {values.day && (
+            <p>
+              ☀ Zi: {values.day.main.temp}°C | 💨{" "}
+              {values.day.wind.speed} m/s | 🔽{" "}
+              {values.day.main.pressure} hPa | ☁{" "}
+              {values.day.weather[0].description}
             </p>
-          ))}
+          )}
+
+          {values.night && (
+            <p>
+              🌙 Noapte: {values.night.main.temp}°C | 💨{" "}
+              {values.night.wind.speed} m/s | 🔽{" "}
+              {values.night.main.pressure} hPa | ☁{" "}
+              {values.night.weather[0].description}
+            </p>
+          )}
         </div>
       ))}
     </div>
