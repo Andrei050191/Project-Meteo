@@ -103,23 +103,28 @@ useEffect(() => {
 
       {weather && (
         <div className="weather-box">
-          <h2>
-            {weather.name} ({weather.sys.country})
-          </h2>
-          <p>🌡 {weather.main.temp} °C</p>
-          <p>☁ {weather.weather[0].description}</p>
+  <h2>
+    {weather.name} ({weather.sys.country})
+  </h2>
 
-          <button className="favorite-btn" onClick={toggleFavorite}>
-            {isFavorite(`${weather.name}_${weather.sys.country}`)
-              ? "❌ Remove favorite"
-              : "⭐ Add favorite"}
-          </button>
+  <p>🌡 Temperatură: {weather.main.temp} °C</p>
+  <p>☁ Vreme: {weather.weather[0].description}</p>
+  <p>💨 Viteză vânt: {weather.wind.speed} m/s</p>
+  <p>🧭 Direcție vânt: {weather.wind.deg}°</p>
+  <p>🔽 Presiune atmosferică: {weather.main.pressure} hPa</p>
 
-          <br />
-          <Link className="link" to={`/city/${weather.name}`}>
-            Vezi detalii →
-          </Link>
-        </div>
+  <button className="favorite-btn" onClick={toggleFavorite}>
+    {isFavorite(`${weather.name}_${weather.sys.country}`)
+      ? "❌ Remove favorite"
+      : "⭐ Add favorite"}
+  </button>
+
+  <br />
+  <Link className="link" to={`/city/${weather.name}`}>
+    Vezi detalii →
+  </Link>
+</div>
+
       )}
 
       <div className="favorites">
