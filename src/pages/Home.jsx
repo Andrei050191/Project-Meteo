@@ -71,10 +71,16 @@ useEffect(() => {
 
 
       <input
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        placeholder="Introdu orașul"
-      />
+  value={city}
+  onChange={(e) => setCity(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      search();
+    }
+  }}
+  placeholder="Introdu orașul"
+/>
+
       <button onClick={search}>Caută</button>
 
       {weather && (
