@@ -16,14 +16,21 @@ export default function CityDetail() {
       .then((r) => r.json())
       .then(setData);
 
-    // prognoză 5 zile
+    // prognoză 5 zile – DETALII COMPLETE
     fetch(
       `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&lang=ro&appid=${API_KEY}`
     )
       .then((r) => r.json())
       .then((res) => {
-        const daily = res.list.filter((_, i) => i % 8 === 0);
-        setForecast(daily);
+        const days = {};
+
+        res.list.forEach((item) => {
+          const day = item.dt_txt.split(" ")[0];
+          if (!days[day]) days[day] = [];
+          days[day].push(item);
+        });
+
+        setForecast(Object.entries(days).slice(0, 5));
       });
   }, [city]);
 
@@ -34,18 +41,30 @@ export default function CityDetail() {
       <Link className="link" to="/">⬅ Înapoi</Link>
 
       <h1>{data.name}</h1>
-      <p>🌡 {data.main.temp} °C</p>
-      <p>☁ {data.weather[0].description}</p>
 
-      <h3>📅 Prognoză 5 zile</h3>
+      <p>🌡 Temperatură: {data.main.temp} °C</p>
+      <p>🤒 Resimțită: {data.main.feels_like} °C</p>
+      <p>☁ Vreme: {data.weather[0].description}</p>
+      <p>💨 Viteză vânt: {data.wind.speed} m/s</p>
+      <p>🧭 Direcție vânt: {data.wind.deg}°</p>
+      <p>🔽 Presiune atmosferică: {data.main.pressure} hPa</p>
+      <p>💧 Umiditate: {data.main.humidity}%</p>
 
-      {forecast.map((day) => (
-        <div key={day.dt} className="weather-box">
+      <h3>📅 Prognoză 5 zile (detalii complete)</h3>
+
+      {forecast.map(([day, items]) => (
+        <div key={day} className="weather-box">
           <strong>
-            {new Date(day.dt * 1000).toLocaleDateString("ro-RO")}
+            {new Date(day).toLocaleDateString("ro-RO")}
           </strong>
-          <p>🌡 {day.main.temp} °C</p>
-          <p>☁ {day.weather[0].description}</p>
+
+          {items.map((i) => (
+            <p key={i.dt}>
+              🕒 {i.dt_txt.split(" ")[1]} | 🌡 {i.main.temp}°C | 💨{" "}
+              {i.wind.speed} m/s | 🧭 {i.wind.deg}° | 🔽{" "}
+              {i.main.pressure} hPa | ☁ {i.weather[0].description}
+            </p>
+          ))}
         </div>
       ))}
     </div>

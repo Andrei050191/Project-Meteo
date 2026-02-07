@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "../context/ThemeContext";
 import { Link } from "react-router-dom";
 import {
   getFavorites,
@@ -9,14 +10,7 @@ import {
 const API_KEY = "4d2631c6c6c4dffc5b233b2636f0ec33";
 
 export default function Home() {
-  const [dark, setDark] = useState(
-  localStorage.getItem("dark") === "true"
-);
-
-useEffect(() => {
-  localStorage.setItem("dark", dark);
-}, [dark]);
-
+  const { dark, setDark } = useTheme();
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -78,10 +72,9 @@ useEffect(() => {
     <div className={dark ? "container dark" : "container"}>
       <h1>🌤 Weather Dashboard</h1>
       <button onClick={() => setDark(!dark)}>
-  {dark ? "☀ Light Mode" : "🌙 Dark Mode"}
-</button>
-
-
+         {dark ? "☀ Light Mode" : "🌙 Dark Mode"}
+      </button>
+      
       <input
   value={city}
   onChange={(e) => setCity(e.target.value)}
