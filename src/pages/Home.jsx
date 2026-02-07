@@ -20,6 +20,7 @@ useEffect(() => {
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     refreshFavorites();
@@ -31,14 +32,25 @@ useEffect(() => {
   };
 
   const search = async () => {
-    if (!city) return;
+  if (!city.trim()) return;
 
-    const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=ro&appid=${API_KEY}`
-    );
-    const data = await res.json();
-    setWeather(data);
-  };
+  setError("");
+  setWeather(null);
+
+  const res = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&lang=ro&appid=${API_KEY}`
+  );
+
+  const data = await res.json();
+
+  if (data.cod !== 200) {
+    setError("❌ Orașul nu a fost găsit. Verifică denumirea.");
+    return;
+  }
+
+  setWeather(data);
+};
+
 
   const isFavorite = (id) => {
     return favorites.some((f) => f.id === id);
