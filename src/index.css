@@ -164,3 +164,73 @@ button:hover {
 .dark button {
   background: #6366f1;
 }
+
+/* === MOBILE FIRST === */
+@media (max-width: 480px) {
+  .container {
+    margin: 20px 12px;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  input,
+  button {
+    font-size: 15px;
+  }
+
+  .weather-box {
+    padding: 16px;
+  }
+
+  .favorites li {
+    padding: 10px;
+  }
+
+  .favorites li a {
+    font-size: 14px;
+  }
+
+  .remove-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+}
+
+/* === ANIMATIONS === */
+
+/* hover / tap general */
+button,
+.favorites li,
+.weather-box {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+/* butoane */
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* carduri meteo */
+.weather-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* favorite item */
+.favorites li:hover {
+  transform: scale(1.01);
+}
+
+/* remove button special */
+.remove-btn:hover {
+  transform: scale(1.05);
+}
